@@ -79,6 +79,7 @@
             border-collapse: collapse;
             margin-bottom: 20px;
             font-size: 14px;
+            table-layout: fixed;
         }
 
         th {
@@ -90,7 +91,23 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            word-wrap: break-word;
+            white-space: normal;
+            min-height: 50px;
+            vertical-align: middle;
         }
+
+        /* Column widths */
+        th:nth-child(1), td:nth-child(1) { width: 10%; } /* Name */
+        th:nth-child(2), td:nth-child(2) { width: 8%; } /* Base */
+        th:nth-child(3), td:nth-child(3) { width: 8%; } /* Closing */
+        th:nth-child(4), td:nth-child(4) { width: 8%; } /* Variance */
+        th:nth-child(5), td:nth-child(5) { width: 8%; } /* Parameter */
+        th:nth-child(6), td:nth-child(6) { width: 8%; } /* Score */
+        th:nth-child(7), td:nth-child(7) { width: 8%; } /* Weight */
+        th:nth-child(8), td:nth-child(8) { width: 9%; } /* Wt.score */
+        th:nth-child(9), td:nth-child(9) { width: 12%; } /* Risk Label */
+        th:nth-child(10), td:nth-child(10) { width: 10%; } /* Action */
 
         td {
             padding: 10px 8px;
