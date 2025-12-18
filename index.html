@@ -218,7 +218,8 @@
                 <div class="gauge-wrapper">
                     <canvas id="gaugeCanvas" width="600" height="350"></canvas>
                 </div>
-                <div class="risk-display" id="riskDisplay">Select a row to view risk</div>
+                <div class="risk-display" id="riskDisplay">Select a row and click Submit</div>
+                <button onclick="submitGauge()" style="width: 100%; margin-top: 20px; font-size: 22px; padding: 18px;">Submit</button>
             </div>
         </div>
     </div>
@@ -307,25 +308,32 @@
 
             // Draw labels
             ctx.fillStyle = '#2c3e50';
-            ctx.font = 'bold 16px Arial';
+
+            // Low label
+            ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'left';
-            ctx.fillText('Low', 85, 300);
+            ctx.fillText('Low', 75, 305);
 
+            // Moderately Low label
             ctx.font = 'bold 14px Arial';
-            ctx.fillText('Moderately', 140, 140);
-            ctx.fillText('Low', 160, 156);
+            ctx.textAlign = 'left';
+            ctx.fillText('Moderately', 125, 125);
+            ctx.fillText('Low', 142, 142);
 
+            // Moderate label
             ctx.textAlign = 'center';
-            ctx.font = 'bold 15px Arial';
-            ctx.fillText('Moderate', 300, 100);
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('Moderate', 300, 95);
 
+            // Moderately High label
             ctx.textAlign = 'right';
             ctx.font = 'bold 14px Arial';
-            ctx.fillText('Moderately', 460, 140);
-            ctx.fillText('High', 460, 156);
+            ctx.fillText('Moderately', 475, 125);
+            ctx.fillText('High', 475, 142);
 
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText('High', 515, 300);
+            // High label
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('High', 525, 305);
 
             // Draw center circle
             ctx.beginPath();
@@ -494,14 +502,20 @@
             // Select new row
             row.classList.add('selected');
             selectedRow = row;
+        }
 
-            // Get score from the row
-            const scoreSelect = row.querySelector('select');
+        function submitGauge() {
+            if (!selectedRow) {
+                document.getElementById('riskDisplay').textContent = 'Please select a row first';
+                return;
+            }
+
+            // Get score from the selected row
+            const scoreSelect = selectedRow.querySelector('select');
             const scoreValue = scoreSelect.value;
 
             if (scoreValue === '') {
-                document.getElementById('riskDisplay').textContent = 'Please select a score';
-                updateGauge(0);
+                document.getElementById('riskDisplay').textContent = 'Please select a score for the row';
                 return;
             }
 
@@ -520,7 +534,7 @@
             const row = button.closest('tr');
             if (row === selectedRow) {
                 selectedRow = null;
-                document.getElementById('riskDisplay').textContent = 'Select a row to view risk';
+                document.getElementById('riskDisplay').textContent = 'Select a row and click Submit';
                 updateGauge(0);
             }
             row.remove();
