@@ -310,30 +310,31 @@
             ctx.fillStyle = '#2c3e50';
 
             // Low label
-            ctx.font = 'bold 18px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText('Low', 75, 305);
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Low', 130, 315);
 
-            // Moderately Low label
-            ctx.font = 'bold 14px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText('Moderately', 125, 125);
-            ctx.fillText('Low', 142, 142);
+            // Moderately Low label (split into two lines)
+            ctx.font = 'bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Moderately', 210, 115);
+            ctx.fillText('Low', 210, 132);
 
             // Moderate label
             ctx.textAlign = 'center';
             ctx.font = 'bold 16px Arial';
-            ctx.fillText('Moderate', 300, 95);
+            ctx.fillText('Moderate', 300, 88);
 
-            // Moderately High label
-            ctx.textAlign = 'right';
-            ctx.font = 'bold 14px Arial';
-            ctx.fillText('Moderately', 475, 125);
-            ctx.fillText('High', 475, 142);
+            // Moderately High label (split into two lines)
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 13px Arial';
+            ctx.fillText('Moderately', 390, 115);
+            ctx.fillText('High', 390, 132);
 
             // High label
-            ctx.font = 'bold 18px Arial';
-            ctx.fillText('High', 525, 305);
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('High', 470, 315);
 
             // Draw center circle
             ctx.beginPath();
