@@ -280,11 +280,17 @@
 
             // Calculate angles for each section based on proportions
             // Low=10, Moderately Low=5, Moderate=3, Moderately High=2, High=5 (Total=25)
-            const totalAngle = endAngle - startAngle;
+            /*const totalAngle = endAngle - startAngle;
             const lowEnd = startAngle + totalAngle * (10/25);  // 40%
             const modLowEnd = startAngle + totalAngle * (15/25);  // 60%
             const moderateEnd = startAngle + totalAngle * (18/25);  // 72%
-            const modHighEnd = startAngle + totalAngle * (20/25);  // 80%
+        const modHighEnd = startAngle + totalAngle * (20/25);  // 80% */
+
+	const totalAngle = endAngle - startAngle;
+const lowEnd = startAngle + totalAngle * 0.20;
+const modLowEnd = startAngle + totalAngle * 0.40;
+const moderateEnd = startAngle + totalAngle * 0.60;
+const modHighEnd = startAngle + totalAngle * 0.80;
 
             // Draw LOW section (dark green)
             ctx.beginPath();
@@ -458,10 +464,10 @@
             // Map discrete scores to gauge positions (0-100)
             // Sections: Low(0-40), ModLow(40-60), Mod(60-72), ModHigh(72-80), High(80-100)
             const scoreMap = {
-                10: 20,   // Middle of Low section (0-40%)
-                5: 50,    // Middle of Moderately Low section (40-60%)
-                3: 66,    // Middle of Moderate section (60-72%)
-                2: 76,    // Middle of Moderately High section (72-80%)
+                10: 10,   // Middle of Low section (0-40%)
+                5: 30,    // Middle of Moderately Low section (40-60%)
+                3: 50,    // Middle of Moderate section (60-72%)
+                2: 70,    // Middle of Moderately High section (72-80%)
                 0: 90     // Middle of High section (80-100%)
             };
             return scoreMap[score] || 0;
