@@ -463,17 +463,26 @@
 
             const base = parseFloat(inputs[0].value) || 0;
             const closing = parseFloat(inputs[1].value) || 0;
-            const score = parseInt(scoreSelect.value) || 0;
-            const weight = parseFloat(inputs[3].value) || 0;
+            const scoreValue = scoreSelect.value;
+            const score = scoreValue === '' ? null : parseInt(scoreValue);
+            const weight = parseFloat(inputs[4].value) || 0;
 
             // Calculate Variance
             inputs[2].value = (closing - base).toFixed(2);
 
             // Calculate Wt.score
-            inputs[4].value = (score * weight).toFixed(2);
+            if (score !== null) {
+                inputs[5].value = (score * weight).toFixed(2);
+            } else {
+                inputs[5].value = '';
+            }
 
             // Calculate Risk Label
-            inputs[5].value = getRiskLabel(score);
+            if (score !== null) {
+                inputs[6].value = getRiskLabel(score);
+            } else {
+                inputs[6].value = '';
+            }
         }
 
         function selectRow(row) {
@@ -488,7 +497,15 @@
 
             // Get score from the row
             const scoreSelect = row.querySelector('select');
-            const score = parseInt(scoreSelect.value) || 0;
+            const scoreValue = scoreSelect.value;
+
+            if (scoreValue === '') {
+                document.getElementById('riskDisplay').textContent = 'Please select a score';
+                updateGauge(0);
+                return;
+            }
+
+            const score = parseInt(scoreValue);
 
             // Update gauge with mapped position
             const gaugeValue = scoreToGaugeValue(score);
