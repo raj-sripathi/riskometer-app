@@ -239,8 +239,10 @@
 
         // Color scheme
         const colors = {
-            low: '#7CB342',
+            low: '#4CAF50',
+            moderatelyLow: '#8BC34A',
             moderate: '#FDD835',
+            moderatelyHigh: '#FF9800',
             high: '#E53935',
             needle: '#2c3e50',
             needleTip: '#c0392b',
@@ -250,12 +252,15 @@
         function drawGaugeBackground() {
             const { centerX, centerY, radius, startAngle, endAngle, lineWidth } = config;
 
-            // Calculate angles for each section
+            // Calculate angles for each section based on proportions
+            // Low=10, Moderately Low=5, Moderate=3, Moderately High=2, High=5 (Total=25)
             const totalAngle = endAngle - startAngle;
-            const lowEnd = startAngle + totalAngle / 3;
-            const moderateEnd = startAngle + (2 * totalAngle) / 3;
+            const lowEnd = startAngle + totalAngle * (10/25);  // 40%
+            const modLowEnd = startAngle + totalAngle * (15/25);  // 60%
+            const moderateEnd = startAngle + totalAngle * (18/25);  // 72%
+            const modHighEnd = startAngle + totalAngle * (20/25);  // 80%
 
-            // Draw LOW section (green)
+            // Draw LOW section (dark green)
             ctx.beginPath();
             ctx.arc(centerX, centerY, radius, startAngle, lowEnd);
             ctx.strokeStyle = colors.low;
@@ -263,17 +268,33 @@
             ctx.lineCap = 'butt';
             ctx.stroke();
 
+            // Draw MODERATELY LOW section (light green)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, lowEnd, modLowEnd);
+            ctx.strokeStyle = colors.moderatelyLow;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+
             // Draw MODERATE section (yellow)
             ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, lowEnd, moderateEnd);
+            ctx.arc(centerX, centerY, radius, modLowEnd, moderateEnd);
             ctx.strokeStyle = colors.moderate;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+
+            // Draw MODERATELY HIGH section (orange)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, moderateEnd, modHighEnd);
+            ctx.strokeStyle = colors.moderatelyHigh;
             ctx.lineWidth = lineWidth;
             ctx.lineCap = 'butt';
             ctx.stroke();
 
             // Draw HIGH section (red)
             ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, moderateEnd, endAngle);
+            ctx.arc(centerX, centerY, radius, modHighEnd, endAngle);
             ctx.strokeStyle = colors.high;
             ctx.lineWidth = lineWidth;
             ctx.lineCap = 'butt';
@@ -281,17 +302,25 @@
 
             // Draw labels
             ctx.fillStyle = '#2c3e50';
-            ctx.font = 'bold 22px Arial';
+            ctx.font = 'bold 16px Arial';
             ctx.textAlign = 'left';
-            ctx.fillText('LOW', 95, 300);
+            ctx.fillText('Low', 85, 300);
+
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Moderately', 140, 140);
+            ctx.fillText('Low', 160, 156);
 
             ctx.textAlign = 'center';
-            ctx.font = 'bold 20px Arial';
-            ctx.fillText('MODERATE', 300, 115);
+            ctx.font = 'bold 15px Arial';
+            ctx.fillText('Moderate', 300, 100);
 
             ctx.textAlign = 'right';
-            ctx.font = 'bold 22px Arial';
-            ctx.fillText('HIGH', 505, 300);
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText('Moderately', 460, 140);
+            ctx.fillText('High', 460, 156);
+
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText('High', 515, 300);
 
             // Draw center circle
             ctx.beginPath();
@@ -374,9 +403,11 @@
         }
 
         function getRiskLabel(score) {
-            if (score <= 33) return 'LOW';
-            if (score <= 67) return 'MODERATE';
-            return 'HIGH';
+            if (score <= 40) return 'Low';
+            if (score <= 60) return 'Moderately Low';
+            if (score <= 72) return 'Moderate';
+            if (score <= 80) return 'Moderately High';
+            return 'High';
         }
 
         function addRow() {
