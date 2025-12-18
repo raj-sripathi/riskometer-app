@@ -201,6 +201,7 @@
                 <table id="riskTable">
                     <thead>
                         <tr>
+                            <th>Name</th>
                             <th>Base</th>
                             <th>Closing</th>
                             <th>Variance</th>
@@ -221,8 +222,7 @@
                 <div class="gauge-wrapper">
                     <canvas id="gaugeCanvas" width="600" height="350"></canvas>
                 </div>
-                <div class="risk-display" id="riskDisplay">Select a row and click Submit</div>
-                <button onclick="submitGauge()" style="width: 100%; margin-top: 20px; font-size: 22px; padding: 18px;">Submit</button>
+                <div class="risk-display" id="riskDisplay">Select a row to view risk</div>
             </div>
         </div>
     </div>
@@ -444,6 +444,7 @@
             const tbody = document.getElementById('tableBody');
             const row = tbody.insertRow();
             row.innerHTML = `
+                <td><input type="text" placeholder="Enter name" /></td>
                 <td><input type="number" step="0.01" onchange="calculateRow(this)" /></td>
                 <td><input type="number" step="0.01" onchange="calculateRow(this)" /></td>
                 <td><input type="number" step="0.01" class="readonly" readonly /></td>
@@ -473,27 +474,32 @@
             const inputs = row.querySelectorAll('input');
             const scoreSelect = row.querySelector('select');
 
-            const base = parseFloat(inputs[0].value) || 0;
-            const closing = parseFloat(inputs[1].value) || 0;
+            const base = parseFloat(inputs[1].value) || 0;
+            const closing = parseFloat(inputs[2].value) || 0;
             const scoreValue = scoreSelect.value;
             const score = scoreValue === '' ? null : parseInt(scoreValue);
-            const weight = parseFloat(inputs[4].value) || 0;
+            const weight = parseFloat(inputs[5].value) || 0;
 
             // Calculate Variance
-            inputs[2].value = (closing - base).toFixed(2);
+            inputs[3].value = (closing - base).toFixed(2);
 
             // Calculate Wt.score
             if (score !== null) {
-                inputs[5].value = (score * weight).toFixed(2);
+                inputs[6].value = (score * weight).toFixed(2);
             } else {
-                inputs[5].value = '';
+                inputs[6].value = '';
             }
 
             // Calculate Risk Label
             if (score !== null) {
-                inputs[6].value = getRiskLabel(score);
+                inputs[7].value = getRiskLabel(score);
             } else {
-                inputs[6].value = '';
+                inputs[7].value = '';
+            }
+
+            // If this row is selected, update the gauge
+            if (row === selectedRow && score !== null) {
+                updateGaugeForRow(row);
             }
         }
 
@@ -506,20 +512,19 @@
             // Select new row
             row.classList.add('selected');
             selectedRow = row;
+
+            // Automatically update gauge
+            updateGaugeForRow(row);
         }
 
-        function submitGauge() {
-            if (!selectedRow) {
-                document.getElementById('riskDisplay').textContent = 'Please select a row first';
-                return;
-            }
-
-            // Get score from the selected row
-            const scoreSelect = selectedRow.querySelector('select');
+        function updateGaugeForRow(row) {
+            // Get score from the row
+            const scoreSelect = row.querySelector('select');
             const scoreValue = scoreSelect.value;
 
             if (scoreValue === '') {
-                document.getElementById('riskDisplay').textContent = 'Please select a score for the row';
+                document.getElementById('riskDisplay').textContent = 'Please select a score';
+                updateGauge(0);
                 return;
             }
 
@@ -538,13 +543,13 @@
             const row = button.closest('tr');
             if (row === selectedRow) {
                 selectedRow = null;
-                document.getElementById('riskDisplay').textContent = 'Select a row and click Submit';
+                document.getElementById('riskDisplay').textContent = 'Select a row to view risk';
                 updateGauge(0);
             }
             row.remove();
         }
 
-        // Save rows to Vercel KV
+        // Save rows to Redis
         async function saveRows() {
             const tbody = document.getElementById('tableBody');
             const rows = [];
@@ -556,14 +561,15 @@
                 const scoreSelect = row.querySelector('select');
 
                 rows.push({
-                    base: inputs[0].value,
-                    closing: inputs[1].value,
-                    variance: inputs[2].value,
-                    parameter: inputs[3].value,
+                    name: inputs[0].value,
+                    base: inputs[1].value,
+                    closing: inputs[2].value,
+                    variance: inputs[3].value,
+                    parameter: inputs[4].value,
                     score: scoreSelect.value,
-                    weight: inputs[4].value,
-                    wtScore: inputs[5].value,
-                    riskLabel: inputs[6].value
+                    weight: inputs[5].value,
+                    wtScore: inputs[6].value,
+                    riskLabel: inputs[7].value
                 });
             }
 
@@ -590,7 +596,7 @@
             }
         }
 
-        // Load rows from Vercel KV
+        // Load rows from Redis
         async function loadRows() {
             try {
                 showStatus('Loading...', 'info');
@@ -606,6 +612,7 @@
                     data.rows.forEach(rowData => {
                         const row = tbody.insertRow();
                         row.innerHTML = `
+                            <td><input type="text" placeholder="Enter name" value="${rowData.name || ''}" /></td>
                             <td><input type="number" step="0.01" value="${rowData.base || ''}" onchange="calculateRow(this)" /></td>
                             <td><input type="number" step="0.01" value="${rowData.closing || ''}" onchange="calculateRow(this)" /></td>
                             <td><input type="number" step="0.01" class="readonly" value="${rowData.variance || ''}" readonly /></td>
