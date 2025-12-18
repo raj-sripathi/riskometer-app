@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Risk Meter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .gauge-container {
+            position: relative;
+            width: 400px;
+            height: 250px;
+            margin: 0 auto 30px;
+        }
+
+        #riskGauge {
+            width: 100%;
+            height: 100%;
+        }
+
+        .input-group {
+            margin: 20px 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input[type="number"] {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 200px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .risk-value {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .error {
+            color: #f44336;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>RISK METER</h1>
+
+        <div class="gauge-container">
+            <svg id="riskGauge" viewBox="0 0 400 250">
+                <!-- Background arc segments -->
+                <defs>
+                    <linearGradient id="lowGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#6B8E23;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#90EE90;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+
+                <!-- LOW (Green) -->
+                <path id="lowArc" d="M 50 200 A 150 150 0 0 1 110 70"
+                      fill="none" stroke="#6B8E23" stroke-width="50"/>
+
+                <!-- MODERATE (Yellow) -->
+                <path id="moderateArc" d="M 110 70 A 150 150 0 0 1 200 30"
+                      fill="none" stroke="#FFD700" stroke-width="50"/>
+
+                <!-- MODERATELY HIGH (Orange) -->
+                <path id="moderatelyHighArc" d="M 200 30 A 150 150 0 0 1 290 70"
+                      fill="none" stroke="#FF8C00" stroke-width="50"/>
+
+                <!-- HIGH (Red) -->
+                <path id="highArc" d="M 290 70 A 150 150 0 0 1 350 200"
+                      fill="none" stroke="#DC143C" stroke-width="50"/>
+
+                <!-- Labels -->
+                <text x="40" y="230" fill="#333" font-size="14" font-weight="bold">LOW</text>
+                <text x="80" y="50" fill="#333" font-size="12" font-weight="bold">MODERATE</text>
+                <text x="260" y="50" fill="#333" font-size="12" font-weight="bold">MODERATELY</text>
+                <text x="280" y="65" fill="#333" font-size="12" font-weight="bold">HIGH</text>
+                <text x="330" y="230" fill="#333" font-size="14" font-weight="bold">HIGH</text>
+
+                <!-- Center circle -->
+                <circle cx="200" cy="200" r="15" fill="#333"/>
+
+                <!-- Needle -->
+                <line id="needle" x1="200" y1="200" x2="200" y2="75"
+                      stroke="#333" stroke-width="4" stroke-linecap="round"
+                      transform="rotate(-90 200 200)"/>
+
+                <!-- Needle tip -->
+                <circle id="needleTip" cx="200" cy="75" r="8" fill="#DC143C"
+                        transform="rotate(-90 200 200)"/>
+            </svg>
+        </div>
+
+        <div class="input-group">
+            <label for="riskInput">Enter Risk Value (0-100):</label>
+            <input type="number" id="riskInput" min="0" max="100" value="0" />
+            <button onclick="updateRisk()">Update</button>
+        </div>
+
+        <div class="risk-value" id="riskValue">Risk Level: 0</div>
+        <div class="error" id="errorMessage"></div>
+    </div>
+
+    <script>
+        let currentAngle = -90; // Start at -90 degrees (leftmost position)
+
+        function updateRisk() {
+            const input = document.getElementById('riskInput');
+            const errorMsg = document.getElementById('errorMessage');
+            const riskValue = document.getElementById('riskValue');
+            const value = parseInt(input.value);
+
+            // Validate input
+            errorMsg.textContent = '';
+            if (isNaN(value) || value < 0 || value > 100) {
+                errorMsg.textContent = 'Please enter a value between 0 and 100';
+                return;
+            }
+
+            // Calculate target angle: -90 to 90 degrees (180 degree range)
+            const targetAngle = -90 + (value * 180 / 100);
+
+            // Animate the needle
+            animateNeedle(currentAngle, targetAngle, 1000);
+            currentAngle = targetAngle;
+
+            // Update the risk value display
+            let riskLabel = '';
+            if (value <= 25) {
+                riskLabel = 'LOW';
+            } else if (value <= 50) {
+                riskLabel = 'MODERATE';
+            } else if (value <= 75) {
+                riskLabel = 'MODERATELY HIGH';
+            } else {
+                riskLabel = 'HIGH';
+            }
+            riskValue.textContent = `Risk Level: ${value} - ${riskLabel}`;
+        }
+
+        function animateNeedle(startAngle, endAngle, duration) {
+            const needle = document.getElementById('needle');
+            const needleTip = document.getElementById('needleTip');
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function for smooth animation (ease-in-out)
+                const easeProgress = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                const currentAngle = startAngle + (endAngle - startAngle) * easeProgress;
+
+                needle.setAttribute('transform', `rotate(${currentAngle} 200 200)`);
+                needleTip.setAttribute('transform', `rotate(${currentAngle} 200 200)`);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // Allow Enter key to update
+        document.getElementById('riskInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                updateRisk();
+            }
+        });
+    </script>
+</body>
+</html>
