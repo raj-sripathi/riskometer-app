@@ -38,7 +38,7 @@
 
         .content {
             display: grid;
-            grid-template-columns: 1fr 500px;
+            grid-template-columns: 1fr 450px;
             gap: 40px;
             align-items: start;
         }
@@ -79,30 +79,46 @@
             border-collapse: collapse;
             margin-bottom: 20px;
             font-size: 14px;
+            table-layout: fixed;
         }
 
         th {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px 8px;
+            padding: 12px 10px;
             text-align: left;
             font-weight: 600;
             position: sticky;
             top: 0;
             z-index: 10;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
+        th:nth-child(1) { width: 120px; } /* Name */
+        th:nth-child(2) { width: 90px; } /* Base */
+        th:nth-child(3) { width: 90px; } /* Closing */
+        th:nth-child(4) { width: 90px; } /* Variance */
+        th:nth-child(5) { width: 120px; } /* Parameter */
+        th:nth-child(6) { width: 90px; } /* Score */
+        th:nth-child(7) { width: 90px; } /* Weight */
+        th:nth-child(8) { width: 90px; } /* Wt.score */
+        th:nth-child(9) { width: 140px; } /* Risk Label */
+        th:nth-child(10) { width: 100px; } /* Action */
+
         td {
-            padding: 10px 8px;
+            padding: 10px;
             border-bottom: 1px solid #e0e0e0;
         }
 
         td input, td select {
             width: 100%;
-            padding: 6px;
+            padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 13px;
+            box-sizing: border-box;
         }
 
         td input:focus, td select:focus {
@@ -220,7 +236,7 @@
 
             <div class="gauge-section">
                 <div class="gauge-wrapper">
-                    <canvas id="gaugeCanvas" width="600" height="350"></canvas>
+                    <canvas id="gaugeCanvas" width="500" height="300"></canvas>
                 </div>
                 <div class="risk-display" id="riskDisplay">Select a row to view risk</div>
             </div>
@@ -233,12 +249,12 @@
 
         // Configuration
         const config = {
-            centerX: 300,
-            centerY: 280,
-            radius: 180,
+            centerX: 250,
+            centerY: 230,
+            radius: 150,
             startAngle: Math.PI,
             endAngle: 2 * Math.PI,
-            lineWidth: 60
+            lineWidth: 50
         };
 
         let currentValue = 0;
@@ -313,54 +329,54 @@
             ctx.fillStyle = '#2c3e50';
 
             // Low label
-            ctx.font = 'bold 22px Arial';
+            ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('Low', 120, 320);
+            ctx.fillText('Low', 105, 260);
 
             // Moderately Low label (split into two lines with better spacing)
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             // Add white background
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.fillRect(178, 100, 70, 40);
+            ctx.fillRect(153, 85, 60, 35);
             ctx.fillStyle = '#2c3e50';
-            ctx.fillText('Moderately', 213, 118);
-            ctx.fillText('Low', 213, 135);
+            ctx.fillText('Moderately', 183, 100);
+            ctx.fillText('Low', 183, 115);
 
             // Moderate label
             ctx.textAlign = 'center';
-            ctx.font = 'bold 18px Arial';
+            ctx.font = 'bold 15px Arial';
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.fillRect(255, 70, 90, 28);
+            ctx.fillRect(215, 60, 70, 24);
             ctx.fillStyle = '#2c3e50';
-            ctx.fillText('Moderate', 300, 90);
+            ctx.fillText('Moderate', 250, 77);
 
             // Moderately High label (split into two lines with better spacing)
-            ctx.font = 'bold 14px Arial';
+            ctx.font = 'bold 12px Arial';
             ctx.textAlign = 'center';
             // Add white background
             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.fillRect(352, 100, 70, 40);
+            ctx.fillRect(287, 85, 60, 35);
             ctx.fillStyle = '#2c3e50';
-            ctx.fillText('Moderately', 387, 118);
-            ctx.fillText('High', 387, 135);
+            ctx.fillText('Moderately', 317, 100);
+            ctx.fillText('High', 317, 115);
 
             // High label
-            ctx.font = 'bold 22px Arial';
+            ctx.font = 'bold 18px Arial';
             ctx.textAlign = 'center';
-            ctx.fillText('High', 480, 320);
+            ctx.fillText('High', 395, 260);
 
             // Draw center circle
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
             ctx.fillStyle = 'white';
             ctx.fill();
             ctx.strokeStyle = '#bdc3c7';
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 2;
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
+            ctx.arc(centerX, centerY, 15, 0, 2 * Math.PI);
             ctx.fillStyle = colors.center;
             ctx.fill();
         }
@@ -370,7 +386,7 @@
 
             // Calculate needle angle based on value (0-100)
             const angle = startAngle + (value / 100) * (endAngle - startAngle);
-            const needleLength = radius - 35;
+            const needleLength = radius - 30;
 
             const tipX = centerX + Math.cos(angle) * needleLength;
             const tipY = centerY + Math.sin(angle) * needleLength;
@@ -378,22 +394,22 @@
             // Shadow
             ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            ctx.shadowBlur = 8;
-            ctx.shadowOffsetX = 3;
-            ctx.shadowOffsetY = 3;
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
 
             // Draw needle
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
             ctx.lineTo(tipX, tipY);
             ctx.strokeStyle = colors.needle;
-            ctx.lineWidth = 6;
+            ctx.lineWidth = 5;
             ctx.lineCap = 'round';
             ctx.stroke();
 
             // Draw needle tip
             ctx.beginPath();
-            ctx.arc(tipX, tipY, 12, 0, 2 * Math.PI);
+            ctx.arc(tipX, tipY, 10, 0, 2 * Math.PI);
             ctx.fillStyle = colors.needleTip;
             ctx.fill();
 
