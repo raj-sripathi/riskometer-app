@@ -15,35 +15,46 @@
             font-family: 'Arial', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
         }
 
         .container {
             background: white;
-            padding: 50px 40px;
+            padding: 40px;
             border-radius: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            max-width: 650px;
-            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         h1 {
             color: #2c3e50;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-size: 2.5em;
             font-weight: 700;
             letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 500px;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .table-section {
+            overflow-x: auto;
+        }
+
+        .gauge-section {
+            position: sticky;
+            top: 20px;
         }
 
         .gauge-wrapper {
-            position: relative;
-            margin: 0 auto 40px;
+            margin: 0 auto 30px;
             width: 100%;
-            max-width: 500px;
         }
 
         canvas {
@@ -52,50 +63,79 @@
             display: block;
         }
 
-        .input-section {
-            margin: 30px 0;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 15px;
-            color: #555;
-            font-weight: 600;
-            font-size: 18px;
-        }
-
-        .input-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        input[type="number"] {
-            padding: 15px 25px;
-            font-size: 20px;
-            border: 3px solid #e0e0e0;
-            border-radius: 12px;
-            width: 180px;
-            text-align: center;
+        .risk-display {
+            margin-top: 20px;
+            font-size: 24px;
             font-weight: bold;
-            transition: all 0.3s;
+            color: #2c3e50;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-align: center;
         }
 
-        input[type="number"]:focus {
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        td input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        td input:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        tr.selected {
+            background-color: #e3f2fd;
+        }
+
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         button {
-            padding: 15px 40px;
-            font-size: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.3s;
@@ -111,21 +151,32 @@
             transform: translateY(0);
         }
 
-        .risk-display {
-            margin-top: 30px;
-            font-size: 28px;
-            font-weight: bold;
-            color: #2c3e50;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 15px;
+        button.delete-btn {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+            padding: 6px 12px;
+            font-size: 14px;
         }
 
-        .error {
-            color: #e74c3c;
-            margin-top: 15px;
-            font-size: 16px;
-            font-weight: 500;
+        button.delete-btn:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.6);
+        }
+
+        .readonly {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .gauge-section {
+                position: relative;
+                max-width: 500px;
+                margin: 0 auto;
+            }
         }
     </style>
 </head>
@@ -133,20 +184,38 @@
     <div class="container">
         <h1>RISKOMETER</h1>
 
-        <div class="gauge-wrapper">
-            <canvas id="gaugeCanvas" width="600" height="350"></canvas>
-        </div>
+        <div class="content">
+            <div class="table-section">
+                <div class="button-group">
+                    <button onclick="addRow()">+ Add Row</button>
+                </div>
 
-        <div class="input-section">
-            <label for="riskInput">Enter Risk Value (0-100):</label>
-            <div class="input-wrapper">
-                <input type="number" id="riskInput" min="0" max="100" value="0" />
-                <button onclick="updateGauge()">Update</button>
+                <table id="riskTable">
+                    <thead>
+                        <tr>
+                            <th>Base</th>
+                            <th>Closing</th>
+                            <th>Variance</th>
+                            <th>Parameter</th>
+                            <th>Score</th>
+                            <th>Weight</th>
+                            <th>Wt.score</th>
+                            <th>Risk Label</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="gauge-section">
+                <div class="gauge-wrapper">
+                    <canvas id="gaugeCanvas" width="600" height="350"></canvas>
+                </div>
+                <div class="risk-display" id="riskDisplay">Select a row to view risk</div>
             </div>
         </div>
-
-        <div class="risk-display" id="riskDisplay">Risk Level: 0 - LOW</div>
-        <div class="error" id="errorMsg"></div>
     </div>
 
     <script>
@@ -166,6 +235,7 @@
         let currentValue = 0;
         let targetValue = 0;
         let animationFrame = null;
+        let selectedRow = null;
 
         // Color scheme
         const colors = {
@@ -280,7 +350,6 @@
         }
 
         function animateNeedle() {
-            const speed = 2;
             const diff = targetValue - currentValue;
 
             if (Math.abs(diff) < 0.5) {
@@ -295,33 +364,8 @@
             animationFrame = requestAnimationFrame(animateNeedle);
         }
 
-        function updateGauge() {
-            const input = document.getElementById('riskInput');
-            const display = document.getElementById('riskDisplay');
-            const errorMsg = document.getElementById('errorMsg');
-
-            const value = parseInt(input.value);
-
-            errorMsg.textContent = '';
-
-            if (isNaN(value) || value < 0 || value > 100) {
-                errorMsg.textContent = 'Please enter a value between 0 and 100';
-                return;
-            }
-
-            targetValue = value;
-
-            // Determine risk level
-            let level = '';
-            if (value <= 33) {
-                level = 'LOW';
-            } else if (value <= 67) {
-                level = 'MODERATE';
-            } else {
-                level = 'HIGH';
-            }
-
-            display.textContent = `Risk Level: ${value} - ${level}`;
+        function updateGauge(score) {
+            targetValue = Math.max(0, Math.min(100, score));
 
             if (animationFrame) {
                 cancelAnimationFrame(animationFrame);
@@ -329,15 +373,89 @@
             animateNeedle();
         }
 
-        // Enter key support
-        document.getElementById('riskInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                updateGauge();
+        function getRiskLabel(score) {
+            if (score <= 33) return 'LOW';
+            if (score <= 67) return 'MODERATE';
+            return 'HIGH';
+        }
+
+        function addRow() {
+            const tbody = document.getElementById('tableBody');
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><input type="number" step="0.01" onchange="calculateRow(this)" /></td>
+                <td><input type="number" step="0.01" onchange="calculateRow(this)" /></td>
+                <td><input type="number" step="0.01" class="readonly" readonly /></td>
+                <td><input type="text" /></td>
+                <td><input type="number" min="0" max="100" step="0.01" onchange="calculateRow(this)" /></td>
+                <td><input type="number" step="0.01" onchange="calculateRow(this)" /></td>
+                <td><input type="number" step="0.01" class="readonly" readonly /></td>
+                <td><input type="text" class="readonly" readonly /></td>
+                <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+            `;
+
+            row.onclick = function(e) {
+                if (e.target.tagName === 'BUTTON') return;
+                selectRow(row);
+            };
+        }
+
+        function calculateRow(input) {
+            const row = input.closest('tr');
+            const cells = row.querySelectorAll('input');
+
+            const base = parseFloat(cells[0].value) || 0;
+            const closing = parseFloat(cells[1].value) || 0;
+            const score = parseFloat(cells[4].value) || 0;
+            const weight = parseFloat(cells[5].value) || 0;
+
+            // Calculate Variance
+            cells[2].value = (closing - base).toFixed(2);
+
+            // Calculate Wt.score
+            cells[6].value = (score * weight).toFixed(2);
+
+            // Calculate Risk Label
+            cells[7].value = getRiskLabel(score);
+        }
+
+        function selectRow(row) {
+            // Remove previous selection
+            if (selectedRow) {
+                selectedRow.classList.remove('selected');
             }
-        });
+
+            // Select new row
+            row.classList.add('selected');
+            selectedRow = row;
+
+            // Get score from the row
+            const scoreInput = row.querySelectorAll('input')[4];
+            const score = parseFloat(scoreInput.value) || 0;
+
+            // Update gauge
+            updateGauge(score);
+
+            // Update display
+            const riskLabel = getRiskLabel(score);
+            document.getElementById('riskDisplay').textContent = `Risk Level: ${score.toFixed(1)} - ${riskLabel}`;
+        }
+
+        function deleteRow(button) {
+            const row = button.closest('tr');
+            if (row === selectedRow) {
+                selectedRow = null;
+                document.getElementById('riskDisplay').textContent = 'Select a row to view risk';
+                updateGauge(0);
+            }
+            row.remove();
+        }
 
         // Initial render
         render(0);
+
+        // Add initial row
+        addRow();
     </script>
 </body>
 </html>
