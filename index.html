@@ -145,28 +145,22 @@
         function drawGauge() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw LOW (Green) - 0% to 25%
-            drawArc(-Math.PI, -Math.PI * 0.5, '#7CB342');
+            // Draw LOW (Green) - 0% to 33%
+            drawArc(-Math.PI, -Math.PI / 3, '#7CB342');
 
-            // Draw MODERATE (Yellow) - 25% to 50%
-            drawArc(-Math.PI * 0.5, 0, '#FDD835');
+            // Draw MODERATE (Yellow) - 33% to 67%
+            drawArc(-Math.PI / 3, Math.PI / 3, '#FDD835');
 
-            // Draw MODERATELY HIGH (Orange) - 50% to 75%
-            drawArc(0, Math.PI * 0.5, '#FB8C00');
-
-            // Draw HIGH (Red) - 75% to 100%
-            drawArc(Math.PI * 0.5, Math.PI, '#E53935');
+            // Draw HIGH (Red) - 67% to 100%
+            drawArc(Math.PI / 3, Math.PI, '#E53935');
 
             // Draw labels
             ctx.fillStyle = '#333';
             ctx.font = 'bold 20px Arial';
             ctx.fillText('LOW', 80, 320);
 
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText('MODERATE', 100, 140);
-
-            ctx.fillText('MODERATELY', 350, 140);
-            ctx.fillText('HIGH', 380, 160);
+            ctx.font = 'bold 18px Arial';
+            ctx.fillText('MODERATE', 230, 110);
 
             ctx.font = 'bold 20px Arial';
             ctx.fillText('HIGH', 490, 320);
@@ -251,12 +245,10 @@
 
             // Update the risk value display
             let riskLabel = '';
-            if (value <= 25) {
+            if (value <= 33) {
                 riskLabel = 'LOW';
-            } else if (value <= 50) {
+            } else if (value <= 67) {
                 riskLabel = 'MODERATE';
-            } else if (value <= 75) {
-                riskLabel = 'MODERATELY HIGH';
             } else {
                 riskLabel = 'HIGH';
             }
