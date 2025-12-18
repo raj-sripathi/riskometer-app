@@ -12,11 +12,10 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 100%);
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -24,275 +23,321 @@
 
         .container {
             background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 50px 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 600px;
+            max-width: 650px;
+            width: 100%;
         }
 
         h1 {
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            font-weight: 700;
+            letter-spacing: 2px;
         }
 
-        .gauge-container {
+        .gauge-wrapper {
             position: relative;
+            margin: 0 auto 40px;
             width: 100%;
             max-width: 500px;
-            margin: 0 auto 30px;
         }
 
         canvas {
             width: 100%;
             height: auto;
+            display: block;
         }
 
-        .input-group {
-            margin: 20px 0;
+        .input-section {
+            margin: 30px 0;
         }
 
         label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             color: #555;
-            font-weight: bold;
+            font-weight: 600;
             font-size: 18px;
         }
 
+        .input-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
         input[type="number"] {
-            padding: 12px 20px;
-            font-size: 18px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            width: 200px;
+            padding: 15px 25px;
+            font-size: 20px;
+            border: 3px solid #e0e0e0;
+            border-radius: 12px;
+            width: 180px;
             text-align: center;
-            transition: border-color 0.3s;
+            font-weight: bold;
+            transition: all 0.3s;
         }
 
         input[type="number"]:focus {
             outline: none;
-            border-color: #4CAF50;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         button {
-            padding: 12px 30px;
-            font-size: 18px;
-            background: #5CB85C;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            margin-left: 10px;
-            transition: background 0.3s;
             font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         button:hover {
-            background: #4CAF50;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
         }
 
         button:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
 
-        .risk-value {
-            margin-top: 20px;
-            font-size: 24px;
+        .risk-display {
+            margin-top: 30px;
+            font-size: 28px;
             font-weight: bold;
-            color: #333;
+            color: #2c3e50;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
         }
 
         .error {
-            color: #f44336;
-            margin-top: 10px;
-            font-size: 14px;
+            color: #e74c3c;
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>RISK METER</h1>
+        <h1>RISKOMETER</h1>
 
-        <div class="gauge-container">
-            <canvas id="riskGauge" width="600" height="400"></canvas>
+        <div class="gauge-wrapper">
+            <canvas id="gaugeCanvas" width="600" height="350"></canvas>
         </div>
 
-        <div class="input-group">
+        <div class="input-section">
             <label for="riskInput">Enter Risk Value (0-100):</label>
-            <input type="number" id="riskInput" min="0" max="100" value="0" />
-            <button onclick="updateRisk()">Update</button>
+            <div class="input-wrapper">
+                <input type="number" id="riskInput" min="0" max="100" value="0" />
+                <button onclick="updateGauge()">Update</button>
+            </div>
         </div>
 
-        <div class="risk-value" id="riskValue">Risk Level: 0</div>
-        <div class="error" id="errorMessage"></div>
+        <div class="risk-display" id="riskDisplay">Risk Level: 0 - LOW</div>
+        <div class="error" id="errorMsg"></div>
     </div>
 
     <script>
-        const canvas = document.getElementById('riskGauge');
+        const canvas = document.getElementById('gaugeCanvas');
         const ctx = canvas.getContext('2d');
 
-        const centerX = 300;
-        const centerY = 300;
-        const radius = 200;
-        const lineWidth = 50;
+        // Configuration
+        const config = {
+            centerX: 300,
+            centerY: 280,
+            radius: 180,
+            startAngle: Math.PI,
+            endAngle: 2 * Math.PI,
+            lineWidth: 60
+        };
 
-        let currentAngle = -Math.PI; // Start at -180 degrees (leftmost position)
-        let animationId = null;
+        let currentValue = 0;
+        let targetValue = 0;
+        let animationFrame = null;
 
-        // Draw the gauge background
-        function drawGauge() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Color scheme
+        const colors = {
+            low: '#7CB342',
+            moderate: '#FDD835',
+            high: '#E53935',
+            needle: '#2c3e50',
+            needleTip: '#c0392b',
+            center: '#34495e'
+        };
 
-            // Draw LOW (Green) - 0% to 33%
-            drawArc(-Math.PI, -Math.PI / 3, '#7CB342');
+        function drawGaugeBackground() {
+            const { centerX, centerY, radius, startAngle, endAngle, lineWidth } = config;
 
-            // Draw MODERATE (Yellow) - 33% to 67%
-            drawArc(-Math.PI / 3, Math.PI / 3, '#FDD835');
+            // Calculate angles for each section
+            const totalAngle = endAngle - startAngle;
+            const lowEnd = startAngle + totalAngle / 3;
+            const moderateEnd = startAngle + (2 * totalAngle) / 3;
 
-            // Draw HIGH (Red) - 67% to 100%
-            drawArc(Math.PI / 3, Math.PI, '#E53935');
+            // Draw LOW section (green)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, startAngle, lowEnd);
+            ctx.strokeStyle = colors.low;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+
+            // Draw MODERATE section (yellow)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, lowEnd, moderateEnd);
+            ctx.strokeStyle = colors.moderate;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
+
+            // Draw HIGH section (red)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, moderateEnd, endAngle);
+            ctx.strokeStyle = colors.high;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'butt';
+            ctx.stroke();
 
             // Draw labels
-            ctx.fillStyle = '#333';
+            ctx.fillStyle = '#2c3e50';
+            ctx.font = 'bold 22px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('LOW', 95, 300);
+
+            ctx.textAlign = 'center';
             ctx.font = 'bold 20px Arial';
-            ctx.fillText('LOW', 80, 320);
+            ctx.fillText('MODERATE', 300, 115);
 
-            ctx.font = 'bold 18px Arial';
-            ctx.fillText('MODERATE', 230, 110);
+            ctx.textAlign = 'right';
+            ctx.font = 'bold 22px Arial';
+            ctx.fillText('HIGH', 505, 300);
 
-            ctx.font = 'bold 20px Arial';
-            ctx.fillText('HIGH', 490, 320);
-
-            // Draw center pivot
+            // Draw center circle
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 20, 0, 2 * Math.PI);
-            ctx.fillStyle = '#fff';
+            ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI);
+            ctx.fillStyle = 'white';
             ctx.fill();
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#bdc3c7';
+            ctx.lineWidth = 3;
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
-            ctx.fillStyle = '#424242';
+            ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
+            ctx.fillStyle = colors.center;
             ctx.fill();
         }
 
-        function drawArc(startAngle, endAngle, color) {
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-        }
+        function drawNeedle(value) {
+            const { centerX, centerY, radius, startAngle, endAngle } = config;
 
-        function drawNeedle(angle) {
-            const needleLength = radius - 30;
-            const endX = centerX + needleLength * Math.cos(angle);
-            const endY = centerY + needleLength * Math.sin(angle);
+            // Calculate needle angle based on value (0-100)
+            const angle = startAngle + (value / 100) * (endAngle - startAngle);
+            const needleLength = radius - 35;
 
-            // Draw shadow
+            const tipX = centerX + Math.cos(angle) * needleLength;
+            const tipY = centerY + Math.sin(angle) * needleLength;
+
+            // Shadow
             ctx.save();
             ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
-            ctx.shadowBlur = 5;
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
+            ctx.shadowBlur = 8;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
 
-            // Draw needle line
+            // Draw needle
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
-            ctx.lineTo(endX, endY);
-            ctx.strokeStyle = '#212121';
-            ctx.lineWidth = 5;
+            ctx.lineTo(tipX, tipY);
+            ctx.strokeStyle = colors.needle;
+            ctx.lineWidth = 6;
             ctx.lineCap = 'round';
             ctx.stroke();
 
             // Draw needle tip
             ctx.beginPath();
-            ctx.arc(endX, endY, 10, 0, 2 * Math.PI);
-            ctx.fillStyle = '#E53935';
+            ctx.arc(tipX, tipY, 12, 0, 2 * Math.PI);
+            ctx.fillStyle = colors.needleTip;
             ctx.fill();
 
             ctx.restore();
         }
 
-        function render() {
-            drawGauge();
-            drawNeedle(currentAngle);
+        function render(value) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGaugeBackground();
+            drawNeedle(value);
         }
 
-        function updateRisk() {
+        function animateNeedle() {
+            const speed = 2;
+            const diff = targetValue - currentValue;
+
+            if (Math.abs(diff) < 0.5) {
+                currentValue = targetValue;
+                render(currentValue);
+                animationFrame = null;
+                return;
+            }
+
+            currentValue += diff * 0.1;
+            render(currentValue);
+            animationFrame = requestAnimationFrame(animateNeedle);
+        }
+
+        function updateGauge() {
             const input = document.getElementById('riskInput');
-            const errorMsg = document.getElementById('errorMessage');
-            const riskValue = document.getElementById('riskValue');
+            const display = document.getElementById('riskDisplay');
+            const errorMsg = document.getElementById('errorMsg');
+
             const value = parseInt(input.value);
 
-            // Validate input
             errorMsg.textContent = '';
+
             if (isNaN(value) || value < 0 || value > 100) {
                 errorMsg.textContent = 'Please enter a value between 0 and 100';
                 return;
             }
 
-            // Calculate target angle: -180 to 0 degrees (π radians range)
-            const targetAngle = -Math.PI + (value / 100) * Math.PI;
+            targetValue = value;
 
-            // Animate the needle
-            animateNeedle(currentAngle, targetAngle, 1000);
-
-            // Update the risk value display
-            let riskLabel = '';
+            // Determine risk level
+            let level = '';
             if (value <= 33) {
-                riskLabel = 'LOW';
+                level = 'LOW';
             } else if (value <= 67) {
-                riskLabel = 'MODERATE';
+                level = 'MODERATE';
             } else {
-                riskLabel = 'HIGH';
+                level = 'HIGH';
             }
-            riskValue.textContent = `Risk Level: ${value} - ${riskLabel}`;
+
+            display.textContent = `Risk Level: ${value} - ${level}`;
+
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            animateNeedle();
         }
 
-        function animateNeedle(startAngle, endAngle, duration) {
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-
-            const startTime = performance.now();
-
-            function animate(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-
-                // Easing function for smooth animation (ease-in-out)
-                const easeProgress = progress < 0.5
-                    ? 2 * progress * progress
-                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-
-                currentAngle = startAngle + (endAngle - startAngle) * easeProgress;
-                render();
-
-                if (progress < 1) {
-                    animationId = requestAnimationFrame(animate);
-                } else {
-                    animationId = null;
-                }
-            }
-
-            animationId = requestAnimationFrame(animate);
-        }
-
-        // Allow Enter key to update
-        document.getElementById('riskInput').addEventListener('keypress', function(e) {
+        // Enter key support
+        document.getElementById('riskInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                updateRisk();
+                updateGauge();
             }
         });
 
         // Initial render
-        render();
+        render(0);
     </script>
 </body>
 </html>
