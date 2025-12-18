@@ -193,7 +193,10 @@
             <div class="table-section">
                 <div class="button-group">
                     <button onclick="addRow()">+ Add Row</button>
+                    <button onclick="saveRows()" style="background: linear-gradient(135deg, #27ae60 0%, #229954 100%); box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);">Save Data</button>
+                    <button onclick="loadRows()" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);">Load Data</button>
                 </div>
+                <div id="statusMessage" style="margin-bottom: 10px; padding: 10px; border-radius: 8px; display: none;"></div>
 
                 <table id="riskTable">
                     <thead>
@@ -541,11 +544,143 @@
             row.remove();
         }
 
+        // Save rows to Vercel KV
+        async function saveRows() {
+            const tbody = document.getElementById('tableBody');
+            const rows = [];
+
+            // Extract data from all rows
+            for (let i = 0; i < tbody.rows.length; i++) {
+                const row = tbody.rows[i];
+                const inputs = row.querySelectorAll('input');
+                const scoreSelect = row.querySelector('select');
+
+                rows.push({
+                    base: inputs[0].value,
+                    closing: inputs[1].value,
+                    variance: inputs[2].value,
+                    parameter: inputs[3].value,
+                    score: scoreSelect.value,
+                    weight: inputs[4].value,
+                    wtScore: inputs[5].value,
+                    riskLabel: inputs[6].value
+                });
+            }
+
+            try {
+                showStatus('Saving...', 'info');
+                const response = await fetch('/api/save-rows', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ rows })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showStatus('Data saved successfully!', 'success');
+                } else {
+                    showStatus('Error: ' + (data.error || 'Failed to save'), 'error');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showStatus('Error: Could not connect to server', 'error');
+            }
+        }
+
+        // Load rows from Vercel KV
+        async function loadRows() {
+            try {
+                showStatus('Loading...', 'info');
+                const response = await fetch('/api/load-rows');
+                const data = await response.json();
+
+                if (response.ok && data.rows && data.rows.length > 0) {
+                    // Clear existing rows
+                    const tbody = document.getElementById('tableBody');
+                    tbody.innerHTML = '';
+
+                    // Add loaded rows
+                    data.rows.forEach(rowData => {
+                        const row = tbody.insertRow();
+                        row.innerHTML = `
+                            <td><input type="number" step="0.01" value="${rowData.base || ''}" onchange="calculateRow(this)" /></td>
+                            <td><input type="number" step="0.01" value="${rowData.closing || ''}" onchange="calculateRow(this)" /></td>
+                            <td><input type="number" step="0.01" class="readonly" value="${rowData.variance || ''}" readonly /></td>
+                            <td><input type="text" value="${rowData.parameter || ''}" /></td>
+                            <td><select onchange="calculateRow(this)">
+                                <option value="">Select...</option>
+                                <option value="10" ${rowData.score === '10' ? 'selected' : ''}>10</option>
+                                <option value="5" ${rowData.score === '5' ? 'selected' : ''}>5</option>
+                                <option value="3" ${rowData.score === '3' ? 'selected' : ''}>3</option>
+                                <option value="2" ${rowData.score === '2' ? 'selected' : ''}>2</option>
+                                <option value="0" ${rowData.score === '0' ? 'selected' : ''}>0</option>
+                            </select></td>
+                            <td><input type="number" step="0.01" value="${rowData.weight || ''}" onchange="calculateRow(this)" /></td>
+                            <td><input type="number" step="0.01" class="readonly" value="${rowData.wtScore || ''}" readonly /></td>
+                            <td><input type="text" class="readonly" value="${rowData.riskLabel || ''}" readonly /></td>
+                            <td><button class="delete-btn" onclick="deleteRow(this)">Delete</button></td>
+                        `;
+
+                        row.onclick = function(e) {
+                            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT') return;
+                            selectRow(row);
+                        };
+                    });
+
+                    showStatus('Data loaded successfully!', 'success');
+                } else if (data.rows && data.rows.length === 0) {
+                    showStatus('No saved data found', 'info');
+                } else {
+                    showStatus('Error: ' + (data.error || 'Failed to load'), 'error');
+                }
+            } catch (error) {
+                console.error('Load error:', error);
+                showStatus('Error: Could not connect to server', 'error');
+            }
+        }
+
+        // Show status message
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('statusMessage');
+            statusEl.textContent = message;
+            statusEl.style.display = 'block';
+
+            if (type === 'success') {
+                statusEl.style.backgroundColor = '#d4edda';
+                statusEl.style.color = '#155724';
+                statusEl.style.border = '1px solid #c3e6cb';
+            } else if (type === 'error') {
+                statusEl.style.backgroundColor = '#f8d7da';
+                statusEl.style.color = '#721c24';
+                statusEl.style.border = '1px solid #f5c6cb';
+            } else {
+                statusEl.style.backgroundColor = '#d1ecf1';
+                statusEl.style.color = '#0c5460';
+                statusEl.style.border = '1px solid #bee5eb';
+            }
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 3000);
+        }
+
         // Initial render
         render(0);
 
-        // Add initial row
-        addRow();
+        // Try to load saved data on startup
+        loadRows();
+
+        // If no data, add initial row
+        setTimeout(() => {
+            const tbody = document.getElementById('tableBody');
+            if (tbody.rows.length === 0) {
+                addRow();
+            }
+        }, 1000);
     </script>
 </body>
 </html>
