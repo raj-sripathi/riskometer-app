@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -19,6 +19,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  let redis;
+
   try {
     const { rows } = req.body;
 
@@ -26,12 +28,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Invalid data format' });
     }
 
-    // Save rows to Vercel KV
-    await kv.set('riskometer:rows', rows);
+    // Connect to Redis using REDIS_URL
+    redis = new Redis(process.env.REDIS_URL);
+
+    // Save rows to Redis
+    await redis.set('riskometer:rows', JSON.stringify(rows));
 
     return res.status(200).json({ success: true, message: 'Rows saved successfully' });
   } catch (error) {
     console.error('Error saving rows:', error);
     return res.status(500).json({ error: 'Failed to save rows' });
+  } finally {
+    if (redis) {
+      await redis.quit();
+    }
   }
 }

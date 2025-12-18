@@ -1,4 +1,4 @@
-import { kv } from '@vercel/kv';
+import Redis from 'ioredis';
 
 export default async function handler(req, res) {
   // Set CORS headers
@@ -19,13 +19,23 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    // Load rows from Vercel KV
-    const rows = await kv.get('riskometer:rows');
+  let redis;
 
-    return res.status(200).json({ success: true, rows: rows || [] });
+  try {
+    // Connect to Redis using REDIS_URL
+    redis = new Redis(process.env.REDIS_URL);
+
+    // Load rows from Redis
+    const data = await redis.get('riskometer:rows');
+    const rows = data ? JSON.parse(data) : [];
+
+    return res.status(200).json({ success: true, rows });
   } catch (error) {
     console.error('Error loading rows:', error);
     return res.status(500).json({ error: 'Failed to load rows' });
+  } finally {
+    if (redis) {
+      await redis.quit();
+    }
   }
 }
